@@ -57,6 +57,57 @@ def predict_linear(X, w, b):
     """preforms prediction"""
     return X @ w + b
 
+def log_1pexp(x, maxmium=20):
+    ''' approximate log(1+exp^x)
+        https://stats.stackexchange.com/questions/475589/numerical-computation-of-cross-entropy-in-practice
+    Args:
+    x   : (ndarray Shape (n,1) or (n,)  input
+    out : (ndarray Shape matches x      output ~= np.log(1+exp(x))
+    '''
+    out = np.zeros_like(x,dtype=float)
+    i = x <= maxmium
+    ni = np.logical_not(i)
+
+    out[i] = np.log(1 + np.exp(x[i]))
+    out[ni] = x[ni]
+
+    return out
+
+def compute_cost_matrix(X,y,w,b,logistic=False, lambda_=0, safe = True):
+    """
+    Computes the cost using  using matrices
+    Args:
+      X : (ndarray, Shape (m,n))          matrix of examples
+      y : (ndarray  Shape (m,) or (m,1))  target value of each example
+      w : (ndarray  Shape (n,) or (n,1))  Values of parameter(s) of the model
+      b : (scalar )                       Values of parameter of the model
+      verbose : (Boolean) If true, print out intermediate value f_wb
+    Returns:
+      total_cost: (scalar)                cost
+
+    """
+
+    m = X.shape[0]
+    y = y.reshape(-1,1) #Ensure 2d
+    w = w.reshape(-1,1)
+    if logistic:
+        if safe:
+            z = X @ w + b       #(m,n)*(n,1) = (m,1)
+            cost = -(y*z) + log_1pexp(z) 
+            cost = np.sum(cost) / m
+        else:
+            f = sigmoid(X @ w + b)
+            cost = (1/m)*(np.dot(-y.T, np.log(f)) - np.dot((1-y).T, np.log(1-f)))  #(1,m)(m,1)=(1,1)
+            cost = cost[0,0]
+    else:
+        f = X @ w + b
+        cost = (1/(w*m))*np.sum((f-y)**2)
+    
+    reg_cost = (lambda_ / (2*m))* np.sum(w**2)
+
+    total_cost = cost + reg_cost
+
+    return total_cost
 
 def plot_data(X, y, ax, pos_label="y=1", neg_label="y=0", s=80, loc="best"):
     """plots logistic data with two axis"""
