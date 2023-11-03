@@ -109,6 +109,82 @@ def compute_cost_matrix(X,y,w,b,logistic=False, lambda_=0, safe = True):
 
     return total_cost
 
+def compute_gradient_matrix(X,y,w,b,logistic=False, lambda_=0):
+    """
+    Computes the gradient using matrices
+
+    Args:
+      X : (ndarray, Shape (m,n))          matrix of examples
+      y : (ndarray  Shape (m,) or (m,1))  target value of each example
+      w : (ndarray  Shape (n,) or (n,1))  Values of parameters of the model
+      b : (scalar )                       Values of parameter of the model
+      logistic: (boolean)                 linear if false, logistic if true
+      lambda_:  (float)                   applies regularization if non-zero
+    Returns
+      dj_dw: (array_like Shape (n,1))     The gradient of the cost w.r.t. the parameters w
+      dj_db: (scalar)                     The gradient of the cost w.r.t. the parameter b
+    """
+
+    m = X.shape[0]
+    y = y.reshape(-1,1)   #Ensure 2D
+    w = w.reshape(-1,1)   #Ensure 2D
+
+    f_wb = sigmoid(X@w+b) if logistic else X @ w +b     #(m,n)(n,1) = (m,1)
+    err = f_wb - y   #(m,1)
+    dj_dw = (1/m) * (X.T @ err)
+    dj_db = (1/m) * np.sum(err)
+
+    dj_dw += (lambda_ / m) * w
+
+    return dj_db, dj_dw
+
+def gradient_descent(X,y,w_in, b_in, alpha, num_iters, logistic=False, lambda_=0, verbose=True):
+    """
+    Performs batch gradient descent to learn theta. Updates theta by taking
+    num_iters gradient steps with learning rate alpha
+
+    Args:
+      X (ndarray):    Shape (m,n)         matrix of examples
+      y (ndarray):    Shape (m,) or (m,1) target value of each example
+      w_in (ndarray): Shape (n,) or (n,1) Initial values of parameters of the model
+      b_in (scalar):                      Initial value of parameter of the model
+      logistic: (boolean)                 linear if false, logistic if true
+      lambda_:  (float)                   applies regularization if non-zero
+      alpha (float):                      Learning rate
+      num_iters (int):                    number of iterations to run gradient descent
+
+    Returns:
+      w (ndarray): Shape (n,) or (n,1)    Updated values of parameters; matches incoming shape
+      b (scalar):                         Updated value of parameter
+    """
+
+    #An array to store cost J and w's at each iteration primarily for graphing later
+    J_history = []
+    w = copy.deepcopy(w_in) #avoid modifying global w within function
+    b = b_in
+    w = w.reshape(-1,1) 
+    y = w.reshape(-1,1)
+
+    for i in range(num_iters):
+
+        # Calculate the gradient and update the parameters
+        dj_db, dj_dw = compute_gradient_matrix(X, y, w, b, logistic, lambda_)
+
+        # Update Parameters using w,b, alpha and gradienet
+        w = w - alpha * dj_dw
+        b = b - alpha * dj_db
+
+        # Save cost J at each iteration
+        if i < 100000: 
+            J_history.append(compute_cost_matrix(X, y, w, b, logistic, lambda_))
+        
+        # Print cost every at intervals 10 times or as many iterations if < 10
+        if i%math.ceil(num_iters / 10) == 0:
+            if verbose: 
+                print(f"Iteration {i:4d}: Cost {J_history[-1]}")
+    
+    return w.reshape(w_in.shape), b, J_history  #return final w,b and J history for graphing
+
 def plot_data(X, y, ax, pos_label="y=1", neg_label="y=0", s=80, loc="best"):
     """plots logistic data with two axis"""
     # Find Indices of Positive and Negative Examples
