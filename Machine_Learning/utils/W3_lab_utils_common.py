@@ -220,6 +220,28 @@ def gradient_descent(X,y,w_in, b_in, alpha, num_iters, logistic=False, lambda_=0
     
     return w.reshape(w_in.shape), b, J_history  #return final w,b and J history for graphing
 
+def zscore_normalize_features(X):
+    """
+    computes  X, zcore normalized by column
+
+    Args:
+      X (ndarray): Shape (m,n) input data, m examples, n features
+
+    Returns:
+      X_norm (ndarray): Shape (m,n)  input normalized by column
+      mu (ndarray):     Shape (n,)   mean of each feature
+      sigma (ndarray):  Shape (n,)   standard deviation of each feature
+    """
+
+    # find the mean of each column/feature
+    mu = np.mean(X, axis=0)  #(n,)
+    #find the stadard deviation of each column/feature
+    sigma = np.std(X, axis=0)
+    #element-wise, subtract mu for that column from each example, divide by std for that column
+    X_norm = (X - mu) / sigma
+
+    return X_norm, mu, sigma
+
 def plot_data(X, y, ax, pos_label="y=1", neg_label="y=0", s=80, loc="best"):
     """plots logistic data with two axis"""
     # Find Indices of Positive and Negative Examples
