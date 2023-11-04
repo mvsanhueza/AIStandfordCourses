@@ -57,6 +57,41 @@ def predict_linear(X, w, b):
     """preforms prediction"""
     return X @ w + b
 
+def compute_cost_logistic(X, y, w, b, lambda_=0, safe=False):
+    """
+    Computes cost using logistic loss, non-matrix version
+
+    Args:
+      X (ndarray): Shape (m,n)  matrix of examples with n features
+      y (ndarray): Shape (m,)   target values
+      w (ndarray): Shape (n,)   parameters for prediction
+      b (scalar):               parameter  for prediction
+      lambda_ : (scalar, float) Controls amount of regularization, 0 = no regularization
+      safe : (boolean)          True-selects under/overflow safe algorithm
+    Returns:
+      cost (scalar): cost
+    """
+        
+    m,n = X.shape
+    cost = 0.0
+    for i in range(m):
+        z_i = np.dot(X[i],w) + b
+        if safe:
+            cost += -(y[i]*z_i) + log_1pexp(z_i)
+        else:
+            f_wb_i = sigmoid(z_i)
+            cost += -y[i] * np.log(f_wb_i) - (1 - y[i]) * np.log(1-f_wb_i)
+
+    cost = cost / m
+
+    reg_cost = 0
+    if lambda_ != 0:
+        for j in range(n):
+            reg_cost += (w[j]**2)
+        reg_cost = (lambda_ / (2*m))*reg_cost
+    
+    return cost + reg_cost
+
 def log_1pexp(x, maxmium=20):
     ''' approximate log(1+exp^x)
         https://stats.stackexchange.com/questions/475589/numerical-computation-of-cross-entropy-in-practice
@@ -215,6 +250,21 @@ def plot_data(X, y, ax, pos_label="y=1", neg_label="y=0", s=80, loc="best"):
     ax.figure.canvas.header_visible = False
     ax.figure.canvas.footer_visible = False
 
+def plt_tumor_data(x,y,ax):
+    """plots tumar data on one axis"""
+    pos = y == 1
+    neg = y == 0
+
+    ax.scatter(x[pos],y[pos],marker='x',s=80,c='r', label="malignant")
+    ax.scatter(x[neg],y[neg],marker='o',s=100,label="benign", facecolors='none', edgecolors=dlblue, lw=3)
+    ax.set_ylim(-0.175,1.1)
+    ax.set_ylabel('y')
+    ax.set_xlabel('Tumor Size')
+    ax.set_title("Logistic Regression on Categorical Data")
+
+    ax.figure.canvas.toolbar_visible = False
+    ax.figure.canvas.header_visible = False
+    ax.figure.canvas.footer_visible = False
 
 # Draws a theshold at 0.5
 def draw_vthresh(ax, x):
