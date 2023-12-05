@@ -41,6 +41,20 @@ def plot_train_cv_mses(degrees, train_mses, cv_mses, title):
     plt.legend()
     plt.show()
 
+def plot_bc_dataset(x, y, title):
+    for i in range(len(y)):
+        marker = 'x' if y[i] == 1 else 'o'
+        c = 'r' if y[i] == 1 else 'b'
+        plt.scatter(x[i,0], x[i,1], marker=marker, c=c)
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    y_0 = mlines.Line2D([],[],color='r', marker='x', markersize=12, linestyle='None', label='y=1')
+    y_1 = mlines.Line2D([], [], color='b', marker='o', markersize=12, linestyle='None', label='y=0')
+    plt.title(title)
+    plt.legend(handles=[y_0, y_1])
+    plt.show
+
+
 def build_models():
     tf.random.set_seed(20)
 
